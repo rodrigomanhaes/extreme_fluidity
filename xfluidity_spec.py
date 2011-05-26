@@ -1,6 +1,6 @@
 import unittest
 from should_dsl import should
-from fluidity import StateMachine, state, transition
+from fluidity import StateMachine, state, transition, InvalidTransition
 from xfluidity import StateMachineConfigurator
 
 class Door(StateMachine):
@@ -29,4 +29,11 @@ class StateMachineConfiguratorSpec(unittest.TestCase):
         self.door_wannabe |should| respond_to('open')
         self.door_wannabe |should| respond_to('crack')
         self.door_wannabe |should| respond_to('close')
+
+    def it_makes_any_object_change_its_state_like_a_state_machine(self):
+        self.door_wannabe.open()
+        self.door_wannabe.current_state() |should| equal_to('open')
+        self.door_wannabe.crack |should| throw(InvalidTransition)
+        self.door_wannabe.close()
+        self.door_wannabe.current_state() |should| equal_to('closed')
 
