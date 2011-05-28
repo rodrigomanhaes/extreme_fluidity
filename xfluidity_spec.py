@@ -1,5 +1,5 @@
 import unittest
-from should_dsl import should
+from should_dsl import should, should_not
 from fluidity import StateMachine, state, transition
 from fluidity import InvalidTransition, GuardNotSatisfied
 from xfluidity import StateMachineConfigurator
@@ -10,13 +10,14 @@ class Door(StateMachine):
     state('broken')
     initial_state = 'closed'
     transition(from_='closed', event='open', to='open', guard='unlocked')
-    transition(from_='closed', event='crack', to='broken')
+    transition(from_='closed', event='crack', to='broken', action='boom')
     transition(from_='open', event='close', to='closed')
 
     def __init__(self, locked=False):
         StateMachine.__init__(self)
         self.locked = locked
         self.pass_light = False
+        self.is_destroyed = False
 
     def unlocked(self):
         return not self.locked
@@ -26,6 +27,9 @@ class Door(StateMachine):
 
     def enter_light(self):
         self.pass_light = True
+
+    def boom(self):
+        self.is_destroyed = True
 
 
 class DoorWannabe(object):
@@ -62,4 +66,9 @@ class StateMachineConfiguratorSpec(unittest.TestCase):
         self.door.pass_light |should| be(True)
         self.door_wannabe.close()
         self.door.pass_light |should| be(False)
+
+    def it_runs_event_actions(self):
+        self.door |should_not| be_destroyed
+        self.door_wannabe.crack()
+        self.door |should| be_destroyed
 
