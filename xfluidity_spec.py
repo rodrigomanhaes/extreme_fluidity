@@ -5,7 +5,7 @@ from fluidity import InvalidTransition, GuardNotSatisfied
 from xfluidity import StateMachineConfigurator
 
 class Door(StateMachine):
-    state('closed')
+    state('closed', enter='exit_light', exit='enter_light')
     state('open')
     state('broken')
     initial_state = 'closed'
@@ -16,9 +16,16 @@ class Door(StateMachine):
     def __init__(self, locked=False):
         StateMachine.__init__(self)
         self.locked = locked
+        self.pass_light = False
 
     def unlocked(self):
         return not self.locked
+
+    def exit_light(self):
+        self.pass_light = False
+
+    def enter_light(self):
+        self.pass_light = True
 
 
 class DoorWannabe(object):
@@ -48,4 +55,10 @@ class StateMachineConfiguratorSpec(unittest.TestCase):
     def it_makes_any_object_run_guard_when_an_event_occurs(self):
         self.door.locked = True
         self.door_wannabe.open |should| throw(GuardNotSatisfied)
+
+    def it_makes_any_object_run_enter_and_exit_actions_at_state_change(self):
+        self.door_wannabe.open()
+        self.door.pass_light |should| be(True)
+        self.door_wannabe.close()
+        self.door.pass_light |should| be(False)
 
