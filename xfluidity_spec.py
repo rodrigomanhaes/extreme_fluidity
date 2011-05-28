@@ -1,6 +1,7 @@
 import unittest
 from should_dsl import should
-from fluidity import StateMachine, state, transition, InvalidTransition
+from fluidity import StateMachine, state, transition
+from fluidity import InvalidTransition, GuardNotSatisfied
 from xfluidity import StateMachineConfigurator
 
 class Door(StateMachine):
@@ -8,9 +9,16 @@ class Door(StateMachine):
     state('open')
     state('broken')
     initial_state = 'closed'
-    transition(from_='closed', event='open', to='open')
+    transition(from_='closed', event='open', to='open', guard='unlocked')
     transition(from_='closed', event='crack', to='broken')
     transition(from_='open', event='close', to='closed')
+
+    def __init__(self, locked=False):
+        StateMachine.__init__(self)
+        self.locked = locked
+
+    def unlocked(self):
+        return not self.locked
 
 
 class DoorWannabe(object):
@@ -21,7 +29,7 @@ class StateMachineConfiguratorSpec(unittest.TestCase):
 
     def setUp(self):
         self.door_wannabe = DoorWannabe()
-        door = Door()
+        self.door = door = Door()
         configurator = StateMachineConfigurator(door)
         configurator.configure(self.door_wannabe)
 
@@ -36,4 +44,8 @@ class StateMachineConfiguratorSpec(unittest.TestCase):
         self.door_wannabe.crack |should| throw(InvalidTransition)
         self.door_wannabe.close()
         self.door_wannabe.current_state() |should| equal_to('closed')
+
+    def it_makes_any_object_run_guard_when_an_event_occurs(self):
+        self.door.locked = True
+        self.door_wannabe.open |should| throw(GuardNotSatisfied)
 
