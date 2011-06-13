@@ -23,3 +23,11 @@ class StateMachineConfigurator(object):
         setattr(objekt, 'current_state',
             new.instancemethod(current_state, objekt, objekt.__class__))
 
+    def deconfigure(self, objekt):
+        machine = self.state_machine
+        for transition in machine.__class__._class_transitions.values():
+            try:
+                objekt.__delattr__(transition.event)
+            except AttributeError:
+                pass
+

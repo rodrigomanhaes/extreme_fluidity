@@ -41,9 +41,9 @@ class StateMachineConfiguratorSpec(unittest.TestCase):
 
     def setUp(self):
         self.door_wannabe = DoorWannabe()
-        self.door = door = Door()
-        configurator = StateMachineConfigurator(door)
-        configurator.configure(self.door_wannabe)
+        self.door = Door()
+        self.configurator = StateMachineConfigurator(self.door)
+        self.configurator.configure(self.door_wannabe)
 
     def it_responds_to_state_machine_events(self):
         self.door_wannabe |should| respond_to('open')
@@ -71,4 +71,10 @@ class StateMachineConfiguratorSpec(unittest.TestCase):
         self.door |should_not| be_destroyed
         self.door_wannabe.crack()
         self.door |should| be_destroyed
+
+    def it_can_get_rid_of_state_machine_stuff(self):
+        self.configurator.deconfigure(self.door_wannabe)
+        self.door_wannabe |should_not| respond_to('open')
+        self.door_wannabe |should_not| respond_to('crack')
+        self.door_wannabe |should_not| respond_to('close')
 
