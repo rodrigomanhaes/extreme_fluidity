@@ -7,7 +7,7 @@ class StateMachineConfigurator(object):
 
     def configure(self, objekt):
         machine = self.state_machine
-        for transition in machine.__class__._class_transitions.values():
+        for transition in machine.__class__._class_transitions:
             event_name = transition.event
             def generate_event(name):
                 def event(self, *args, **kwargs):
@@ -25,7 +25,7 @@ class StateMachineConfigurator(object):
 
     def deconfigure(self, objekt):
         machine = self.state_machine
-        for transition in machine.__class__._class_transitions.values():
+        for transition in machine.__class__._class_transitions:
             try:
                 objekt.__delattr__(transition.event)
             except AttributeError:
